@@ -105,6 +105,7 @@ export default {
       scrolling: false,
       pinching: false,
       rotating: false,
+      angle: 0,
       pinchDistance: 0,
       supportTouch: false,
       pointerMoved: false,
@@ -1302,16 +1303,16 @@ export default {
       }
     },
     rotateToAngleInjected() {
-      let angle =
+      this.angle =
         arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0
 
       if (this.disableRotation || this.disabled || this.passive) return
-      angle = parseInt(angle)
-      if (isNaN(angle) || angle > 360 || angle < 0) {
+      this.angle = parseInt(this.angle)
+      if (isNaN(this.angle) || this.angle > 360 || this.angle < 0) {
         console.warn(
           'Invalid argument for rotate() method. It should be in range [0, 360].'
         )
-        angle = 0
+        this.angle = 0
       }
 
       const _this8 = this
@@ -1331,7 +1332,7 @@ export default {
       const picOffsetY = height / 2
 
       ctx.translate(picOffsetX, picOffsetY)
-      ctx.rotate((angle / 180) * Math.PI)
+      ctx.rotate((this.angle / 180) * Math.PI)
       ctx.drawImage(img, 0 - picOffsetX, 0 - picOffsetY, width, height)
       ctx.restore()
 

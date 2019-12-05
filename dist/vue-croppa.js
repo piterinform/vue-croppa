@@ -1,5 +1,5 @@
 /*
- * vue-croppa v1.3.8
+ * vue-croppa v1.3.91
  * https://github.com/zhanziyang/vue-croppa
  * 
  * Copyright (c) 2019 zhanziyang
@@ -535,6 +535,7 @@ var component = { render: function render() {
       scrolling: false,
       pinching: false,
       rotating: false,
+      angle: 0,
       pinchDistance: 0,
       supportTouch: false,
       pointerMoved: false,
@@ -1726,14 +1727,13 @@ var component = { render: function render() {
       }
     },
     rotateToAngleInjected: function rotateToAngleInjected() {
-      // вынести функцию из компонента и привести в порядок
-      var angle = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+      this.angle = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 
       if (this.disableRotation || this.disabled || this.passive) return;
-      angle = parseInt(angle);
-      if (isNaN(angle) || angle > 360 || angle < 0) {
+      this.angle = parseInt(this.angle);
+      if (isNaN(this.angle) || this.angle > 360 || this.angle < 0) {
         console.warn('Invalid argument for rotate() method. It should be in range [0, 360].');
-        angle = 0;
+        this.angle = 0;
       }
 
       var _this8 = this;
@@ -1741,7 +1741,7 @@ var component = { render: function render() {
       this.rotating = true;
 
       var img = this.originalImage;
-      // Увеличение масштаба позволяет снизить потери качества при вращении
+      // Zoom in to reduce quality loss when rotating
       var width = this.originalImage.width;
       var height = this.originalImage.height;
       var canvas = document.createElement('canvas');
@@ -1753,7 +1753,7 @@ var component = { render: function render() {
       var picOffsetY = height / 2;
 
       ctx.translate(picOffsetX, picOffsetY);
-      ctx.rotate(angle / 180 * Math.PI);
+      ctx.rotate(this.angle / 180 * Math.PI);
       ctx.drawImage(img, 0 - picOffsetX, 0 - picOffsetY, width, height);
       ctx.restore();
 
