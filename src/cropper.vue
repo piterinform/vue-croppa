@@ -1300,6 +1300,50 @@ export default {
         this._setSize()
         this._placeImage()
       }
+    },
+    rotateToAngleInjected() {
+      let angle =
+        arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0
+
+      if (this.disableRotation || this.disabled || this.passive) return
+      angle = parseInt(angle)
+      if (isNaN(angle) || angle > 360 || angle < 0) {
+        console.warn(
+          'Invalid argument for rotate() method. It should be in range [0, 360].'
+        )
+        angle = 0
+      }
+
+      const _this8 = this
+      if (!this.img) return
+      this.rotating = true
+
+      const img = this.originalImage
+      // Zoom in to reduce quality loss when rotating
+      const width = this.originalImage.width
+      const height = this.originalImage.height
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      canvas.width = width
+      canvas.height = height
+
+      const picOffsetX = width / 2
+      const picOffsetY = height / 2
+
+      ctx.translate(picOffsetX, picOffsetY)
+      ctx.rotate((angle / 180) * Math.PI)
+      ctx.drawImage(img, 0 - picOffsetX, 0 - picOffsetY, width, height)
+      ctx.restore()
+
+      const _canvas = canvas
+
+      const _img = new Image()
+      _img.src = _canvas.toDataURL()
+
+      _img.onload = function() {
+        _this8.img = _img
+        _this8._drawFrame()
+      }
     }
   }
 }

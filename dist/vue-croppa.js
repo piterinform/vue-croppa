@@ -2,7 +2,7 @@
  * vue-croppa v1.3.8
  * https://github.com/zhanziyang/vue-croppa
  * 
- * Copyright (c) 2018 zhanziyang
+ * Copyright (c) 2019 zhanziyang
  * Released under the ISC license
  */
   
@@ -947,6 +947,9 @@ var component = { render: function render() {
     emitNativeEvent: function emitNativeEvent(evt) {
       this.emitEvent(evt.type, evt);
     },
+    setFile: function setFile(file) {
+      this._onNewFileIn(file);
+    },
     _setContainerSize: function _setContainerSize() {
       if (this.useAutoSizing) {
         this.realWidth = +getComputedStyle(this.$refs.wrapper).width.slice(0, -2);
@@ -1548,7 +1551,7 @@ var component = { render: function render() {
       }
     },
     _setOrientation: function _setOrientation() {
-      var _this8 = this;
+      var _this9 = this;
 
       var orientation = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 6;
       var applyMetadata = arguments[1];
@@ -1560,8 +1563,8 @@ var component = { render: function render() {
         // u.getRotatedImageData(useOriginal ? this.originalImage : this.img, orientation)
         var _img = u.getRotatedImage(useOriginal ? this.originalImage : this.img, orientation);
         _img.onload = function () {
-          _this8.img = _img;
-          _this8._placeImage(applyMetadata);
+          _this9.img = _img;
+          _this9._placeImage(applyMetadata);
         };
       } else {
         this._placeImage(applyMetadata);
@@ -1597,13 +1600,13 @@ var component = { render: function render() {
       this.ctx.fillRect(0, 0, this.outputWidth, this.outputHeight);
     },
     _draw: function _draw() {
-      var _this9 = this;
+      var _this10 = this;
 
       this.$nextTick(function () {
         if (typeof window !== 'undefined' && window.requestAnimationFrame) {
-          requestAnimationFrame(_this9._drawFrame);
+          requestAnimationFrame(_this10._drawFrame);
         } else {
-          _this9._drawFrame();
+          _this10._drawFrame();
         }
       });
     },
@@ -1649,12 +1652,12 @@ var component = { render: function render() {
       ctx.closePath();
     },
     _createContainerClipPath: function _createContainerClipPath() {
-      var _this10 = this;
+      var _this11 = this;
 
       this._clipPathFactory(0, 0, this.outputWidth, this.outputHeight);
       if (this.clipPlugins && this.clipPlugins.length) {
         this.clipPlugins.forEach(function (func) {
-          func(_this10.ctx, 0, 0, _this10.outputWidth, _this10.outputHeight);
+          func(_this11.ctx, 0, 0, _this11.outputWidth, _this11.outputHeight);
         });
       }
     },
@@ -1686,7 +1689,7 @@ var component = { render: function render() {
       ctx.restore();
     },
     _applyMetadata: function _applyMetadata() {
-      var _this11 = this;
+      var _this12 = this;
 
       if (!this.userMetadata) return;
       var _userMetadata = this.userMetadata,
@@ -1708,7 +1711,7 @@ var component = { render: function render() {
       }
 
       this.$nextTick(function () {
-        _this11.userMetadata = null;
+        _this12.userMetadata = null;
       });
     },
     onDimensionChange: function onDimensionChange() {
@@ -1721,6 +1724,48 @@ var component = { render: function render() {
         this._setSize();
         this._placeImage();
       }
+    },
+    rotateToAngleInjected: function rotateToAngleInjected() {
+      // вынести функцию из компонента и привести в порядок
+      var angle = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+
+      if (this.disableRotation || this.disabled || this.passive) return;
+      angle = parseInt(angle);
+      if (isNaN(angle) || angle > 360 || angle < 0) {
+        console.warn('Invalid argument for rotate() method. It should be in range [0, 360].');
+        angle = 0;
+      }
+
+      var _this8 = this;
+      if (!this.img) return;
+      this.rotating = true;
+
+      var img = this.originalImage;
+      // Увеличение масштаба позволяет снизить потери качества при вращении
+      var width = this.originalImage.width;
+      var height = this.originalImage.height;
+      var canvas = document.createElement('canvas');
+      var ctx = canvas.getContext('2d');
+      canvas.width = width;
+      canvas.height = height;
+
+      var picOffsetX = width / 2;
+      var picOffsetY = height / 2;
+
+      ctx.translate(picOffsetX, picOffsetY);
+      ctx.rotate(angle / 180 * Math.PI);
+      ctx.drawImage(img, 0 - picOffsetX, 0 - picOffsetY, width, height);
+      ctx.restore();
+
+      var _canvas = canvas;
+
+      var _img = new Image();
+      _img.src = _canvas.toDataURL();
+
+      _img.onload = function () {
+        _this8.img = _img;
+        _this8._drawFrame();
+      };
     }
   }
 };
